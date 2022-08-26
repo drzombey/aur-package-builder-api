@@ -5,7 +5,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/drzombey/aur-package-builder-api/database"
 	"github.com/drzombey/aur-package-builder-api/handler"
 	"github.com/drzombey/aur-package-builder-api/model"
 	"github.com/gin-gonic/gin"
@@ -19,7 +18,6 @@ var (
 func main() {
 	setupLogFormatter()
 	loadConfig()
-	database.SetupMongoDB(&app)
 	setupWebserver()
 }
 
@@ -42,6 +40,10 @@ func setupLogFormatter() {
 	})
 }
 
+func setupDatabase() {
+	//store, err := db.NewMongoStore(&app)
+}
+
 func loadConfig() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
@@ -49,11 +51,11 @@ func loadConfig() {
 	viper.SetDefault("webserverPort", 8080)
 	viper.SetDefault("webserverMode", "production")
 	viper.SetDefault("database", map[string]interface{}{
-		"host":         "localhost",
-		"port":         27017,
-		"user":         "root",
-		"password":     "example",
-		"databaseName": "aur_package_builder",
+		"host":     "localhost",
+		"port":     27017,
+		"user":     "root",
+		"password": "example",
+		"name":     "aur_package_builder",
 	})
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -74,5 +76,10 @@ func loadConfig() {
 }
 
 func registerHandlers(s *gin.Engine) {
-	s.GET("/package", handler.HandleGetPackage)
+	handler.InitHandlers(&app)
+
+	version1 := "/api/v1"
+
+	s.GET(fmt.Sprintf("%s/package", version1), handler.HandleGetPackage)
+	s.POST(fmt.Sprintf("%s/package", version1), handler.HandleAddPackage)
 }

@@ -6,3 +6,4 @@ database:
   host: localhost
   user: root
   password: example
+  name: "aur_package_builder_api"
