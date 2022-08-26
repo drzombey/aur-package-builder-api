@@ -5,6 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/drzombey/aur-package-builder-api/aur"
 	"github.com/drzombey/aur-package-builder-api/handler"
 	"github.com/drzombey/aur-package-builder-api/model"
 	"github.com/gin-gonic/gin"
@@ -16,9 +17,10 @@ var (
 )
 
 func main() {
-	setupLogFormatter()
-	loadConfig()
-	setupWebserver()
+	aur.FindPackageByNameInAur("chromium")
+	//setupLogFormatter()
+	//loadConfig()
+	//setupWebserver()
 }
 
 func setupWebserver() {
