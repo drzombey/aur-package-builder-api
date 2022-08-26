@@ -1,0 +1,8 @@
+webserverPort: 8080
+debug: true
+logLevel: info
+database:
+  port: 27017
+  host: localhost
+  user: root
+  password: example
