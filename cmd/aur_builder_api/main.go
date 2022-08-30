@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 
+	docker "github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/container"
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/handler"
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/drzombey/aur-package-builder-api/aur"
-	"github.com/drzombey/aur-package-builder-api/handler"
-	"github.com/drzombey/aur-package-builder-api/model"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -17,7 +17,26 @@ var (
 )
 
 func main() {
-	aur.FindPackageByNameInAur("chromium")
+	controller, err := docker.NewContainerController()
+	if err != nil {
+		panic(err)
+	}
+
+	//container, _ := controller.ContainerById("457e5bcc644dcb0ff2612c10b4d1a55b01f20e4615f046675894493fee56bb3f")
+
+	//fmt.Print(container.Names)
+	//fmt.Print(container.State)
+
+	containers, _ := controller.ContainersByImage("mongo:latest")
+
+	fmt.Println(containers)
+
+	controller.CleanContainersByImage("mongo:latest")
+
+	containers, _ = controller.ContainersByImage("mongo:latest")
+
+	fmt.Println(containers)
+
 	//setupLogFormatter()
 	//loadConfig()
 	//setupWebserver()
@@ -82,6 +101,6 @@ func registerHandlers(s *gin.Engine) {
 
 	version1 := "/api/v1"
 
-	s.GET(fmt.Sprintf("%s/package", version1), handler.HandleGetPackage)
+	s.GET(fmt.Sprintf("%s/package", version1), handler.HandleGetPackageList)
 	s.POST(fmt.Sprintf("%s/package", version1), handler.HandleAddPackage)
 }

@@ -12,7 +12,7 @@ func FindPackageByNameInAur(name string) {
 
 	var response aurgo.ResponseInfo
 
-	query := fmt.Sprintf("arg=%s", name)
+	query := fmt.Sprintf("by=name&arg=%s", name)
 
 	value, err := url.ParseQuery(query)
 
@@ -21,6 +21,6 @@ func FindPackageByNameInAur(name string) {
 		return
 	}
 
-	aurgo.Call("search", value, &response)
+	aurgo.Call(aurgo.Search, value, &response)
 	fmt.Println(response)
 }

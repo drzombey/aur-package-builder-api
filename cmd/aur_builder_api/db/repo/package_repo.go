@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/drzombey/aur-package-builder-api/db"
-	"github.com/drzombey/aur-package-builder-api/model"
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/db"
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )

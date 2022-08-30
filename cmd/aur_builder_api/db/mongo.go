@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/drzombey/aur-package-builder-api/model"
-	"github.com/drzombey/aur-package-builder-api/model/config"
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model"
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

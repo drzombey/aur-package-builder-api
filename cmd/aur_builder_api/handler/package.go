@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	repository "github.com/drzombey/aur-package-builder-api/db/repo"
-	"github.com/drzombey/aur-package-builder-api/model"
+	repository "github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/db/repo"
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +16,7 @@ func InitHandlers(a *model.App) {
 
 }
 
-func HandleGetPackage(c *gin.Context) {
+func HandleGetPackageList(c *gin.Context) {
 	repo := repository.PackageRepo{App: app}
 
 	packages, err := repo.GetAurPackages()
@@ -30,6 +30,11 @@ func HandleGetPackage(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, &packages)
+}
+
+func HandleBuildPackage(c *gin.Context) {
+	//aurpackageid := c.Query("aurPackageId")
+
 }
 
 func HandleAddPackage(c *gin.Context) {
