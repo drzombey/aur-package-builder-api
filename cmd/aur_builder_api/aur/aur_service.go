@@ -5,12 +5,13 @@ import (
 	"net/url"
 
 	aurgo "github.com/drzombey/aur-rpc-client-go"
+	"github.com/drzombey/aur-rpc-client-go/types"
 	"github.com/sirupsen/logrus"
 )
 
-func FindPackageByNameInAur(name string) {
+func FindPackageByNameInAur(name string) (*types.ResponseInfo, error) {
 
-	var response aurgo.ResponseInfo
+	var response types.ResponseInfo
 
 	query := fmt.Sprintf("by=name&arg=%s", name)
 
@@ -18,9 +19,9 @@ func FindPackageByNameInAur(name string) {
 
 	if err != nil {
 		logrus.Errorf("Cannot parse query string [error: %s]", err)
-		return
+		return nil, err
 	}
 
-	aurgo.Call(aurgo.Search, value, &response)
-	fmt.Println(response)
+	aurgo.Call(types.Search, value, &response)
+	return &response, nil
 }

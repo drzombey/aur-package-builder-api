@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	docker "github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/container"
 	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/handler"
 	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model"
 	log "github.com/sirupsen/logrus"
@@ -17,29 +16,9 @@ var (
 )
 
 func main() {
-	controller, err := docker.NewContainerController()
-	if err != nil {
-		panic(err)
-	}
-
-	//container, _ := controller.ContainerById("457e5bcc644dcb0ff2612c10b4d1a55b01f20e4615f046675894493fee56bb3f")
-
-	//fmt.Print(container.Names)
-	//fmt.Print(container.State)
-
-	containers, _ := controller.ContainersByImage("mongo:latest")
-
-	fmt.Println(containers)
-
-	controller.CleanContainersByImage("mongo:latest")
-
-	containers, _ = controller.ContainersByImage("mongo:latest")
-
-	fmt.Println(containers)
-
-	//setupLogFormatter()
-	//loadConfig()
-	//setupWebserver()
+	setupLogFormatter()
+	loadConfig()
+	setupWebserver()
 }
 
 func setupWebserver() {
@@ -59,10 +38,6 @@ func setupLogFormatter() {
 		ForceColors:   true,
 		FullTimestamp: true,
 	})
-}
-
-func setupDatabase() {
-	//store, err := db.NewMongoStore(&app)
 }
 
 func loadConfig() {
@@ -103,4 +78,5 @@ func registerHandlers(s *gin.Engine) {
 
 	s.GET(fmt.Sprintf("%s/package", version1), handler.HandleGetPackageList)
 	s.POST(fmt.Sprintf("%s/package", version1), handler.HandleAddPackage)
+	s.GET(fmt.Sprintf("%s/aurpackage", version1), handler.HandleGetAurPackageByName)
 }

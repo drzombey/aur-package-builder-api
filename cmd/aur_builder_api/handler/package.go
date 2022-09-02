@@ -19,7 +19,7 @@ func InitHandlers(a *model.App) {
 func HandleGetPackageList(c *gin.Context) {
 	repo := repository.PackageRepo{App: app}
 
-	packages, err := repo.GetAurPackages()
+	packages, err := repo.GetAlreadyBuildPackages()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -32,9 +32,32 @@ func HandleGetPackageList(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, &packages)
 }
 
-func HandleBuildPackage(c *gin.Context) {
-	//aurpackageid := c.Query("aurPackageId")
+func HandleGetAurPackageByName(c *gin.Context) {
+	repo := repository.PackageRepo{App: app}
 
+	packagename, isPackageNameSet := c.GetQuery("packageName")
+
+	if !isPackageNameSet {
+		logrus.Error("Error query parameter not set")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusBadRequest,
+			"msg":    "Query parameter packageName not set!",
+		})
+		return
+	}
+
+	response, err := repo.GetPackageFromAur(packagename)
+
+	if err != nil {
+		logrus.Errorf("Error during getting of aur packages [error %s]", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"msg":    "An error occured internally",
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, response)
 }
 
 func HandleAddPackage(c *gin.Context) {
