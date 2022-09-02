@@ -5,6 +5,7 @@ import (
 
 	repository "github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/db/repo"
 	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model"
+	"github.com/drzombey/aur-rpc-client-go/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -63,7 +64,7 @@ func HandleGetAurPackageByName(c *gin.Context) {
 func HandleAddPackage(c *gin.Context) {
 	repo := repository.PackageRepo{App: app}
 
-	var newPackage model.AurPackage
+	var newPackage types.Package
 
 	if err := c.BindJSON(&newPackage); err != nil {
 		logrus.Errorf("Error occured [error: %s]", err)

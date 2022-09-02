@@ -22,9 +22,9 @@ func (pr PackageRepo) GetPackageFromAur(name string) ([]types.Package, error) {
 	return response.Packages, nil
 }
 
-func (pr PackageRepo) GetAlreadyBuildPackages() ([]*model.AurPackage, error) {
+func (pr PackageRepo) GetAlreadyBuildPackages() ([]*types.Package, error) {
 	store, err := db.NewMongoStore(pr.App)
-	packages := []*model.AurPackage{}
+	packages := []*types.Package{}
 
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (pr PackageRepo) GetAlreadyBuildPackages() ([]*model.AurPackage, error) {
 	return packages, nil
 }
 
-func (pr PackageRepo) AddAurPackage(model *model.AurPackage) error {
+func (pr PackageRepo) AddAurPackage(model *types.Package) error {
 	store, err := db.NewMongoStore(pr.App)
 	if err != nil {
 		return err
