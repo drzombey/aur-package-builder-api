@@ -17,7 +17,7 @@ func InitHandlers(a *model.App) {
 
 }
 
-func HandleGetPackageList(c *gin.Context) {
+func HandleGetAlreadyBuildPackages(c *gin.Context) {
 	repo := repository.PackageRepo{App: app}
 
 	packages, err := repo.GetAlreadyBuildPackages()
@@ -61,7 +61,7 @@ func HandleGetAurPackageByName(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, response)
 }
 
-func HandleAddPackage(c *gin.Context) {
+func HandleBuildPackage(c *gin.Context) {
 	repo := repository.PackageRepo{App: app}
 
 	var newPackage types.Package

@@ -76,7 +76,7 @@ func registerHandlers(s *gin.Engine) {
 
 	version1 := "/api/v1"
 
-	s.GET(fmt.Sprintf("%s/package", version1), handler.HandleGetPackageList)
-	s.POST(fmt.Sprintf("%s/package", version1), handler.HandleAddPackage)
+	s.GET(fmt.Sprintf("%s/build/package", version1), handler.HandleGetAlreadyBuildPackages)
+	s.POST(fmt.Sprintf("%s/build/package", version1), handler.HandleBuildPackage)
 	s.GET(fmt.Sprintf("%s/aurpackage", version1), handler.HandleGetAurPackageByName)
 }
