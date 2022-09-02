@@ -8,3 +8,6 @@
 # Testing
 *.test
 *.tmp
+
+config.yml
+cmd/aur_builder_api/config.yml
