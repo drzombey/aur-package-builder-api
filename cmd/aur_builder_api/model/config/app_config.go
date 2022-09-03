@@ -5,4 +5,5 @@ type AppConfig struct {
 	Debug         bool
 	LogLevel      string
 	Database      MongoDbConfig
+	Docker        DockerConfig
 }

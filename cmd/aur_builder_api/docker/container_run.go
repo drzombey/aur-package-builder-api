@@ -38,5 +38,11 @@ func (c *ContainerController) RunContainer(image string, command []string, volum
 		return "", err
 	}
 
+	_, err = c.WaitForContainer(resp.ID)
+
+	if err != nil {
+		return "", err
+	}
+
 	return resp.ID, nil
 }

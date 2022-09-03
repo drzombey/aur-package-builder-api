@@ -22,6 +22,22 @@ func (pr PackageRepo) GetPackageFromAur(name string) ([]types.Package, error) {
 	return response.Packages, nil
 }
 
+func (pr PackageRepo) GetAlreadyBuildPackageByAurIdAndVersion(id int64, version string) (*types.Package, error) {
+	store, err := db.NewMongoStore(pr.App)
+	foundPackage := types.Package{}
+
+	if err != nil {
+		return nil, err
+	}
+
+	_ = store.Client.Database(pr.App.Config.Database.Name).Collection("packages").FindOne(context.TODO(), bson.M{
+		"id":      id,
+		"version": version,
+	}).Decode(&foundPackage)
+
+	return &foundPackage, nil
+}
+
 func (pr PackageRepo) GetAlreadyBuildPackages() ([]*types.Package, error) {
 	store, err := db.NewMongoStore(pr.App)
 	packages := []*types.Package{}

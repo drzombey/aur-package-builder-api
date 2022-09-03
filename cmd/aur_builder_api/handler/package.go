@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/builder"
 	repository "github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/db/repo"
 	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/model"
 	"github.com/drzombey/aur-rpc-client-go/types"
@@ -75,7 +76,42 @@ func HandleBuildPackage(c *gin.Context) {
 		return
 	}
 
-	err := repo.AddAurPackage(&newPackage)
+	result, err := repo.GetAlreadyBuildPackageByAurIdAndVersion(newPackage.ID, newPackage.Version)
+
+	if err != nil {
+		logrus.Errorf("Error occured [error: %s]", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"msg":    "An error occured internally",
+		})
+		return
+	}
+
+	if result != nil {
+		if result.Version == newPackage.Version {
+			logrus.Warnf("Warning package already exist Package[id: %s, name: %s, version: %s]", result.ID, result.Name, result.Version)
+			c.JSON(http.StatusOK, gin.H{
+				"status": http.StatusOK,
+				"msg":    "Package already exist, please see the mirror if it's available",
+			})
+			return
+		}
+	}
+
+	/*err = repo.AddAurPackage(&newPackage)
+
+	if err != nil {
+		logrus.Errorf("Error occured [error: %s]", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"msg":    "An error occured internally",
+		})
+		return
+	}*/
+
+	builder := builder.NewAurBuilderService(&app.Config.Docker)
+
+	status, err := builder.BuildAurPackage(&newPackage)
 
 	if err != nil {
 		logrus.Errorf("Error occured [error: %s]", err)
@@ -87,7 +123,8 @@ func HandleBuildPackage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"status": http.StatusCreated,
-		"msg":    "Package created",
+		"status":          http.StatusCreated,
+		"msg":             "Package created",
+		"containerStatus": status,
 	})
 }

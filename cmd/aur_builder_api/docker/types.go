@@ -3,11 +3,11 @@ package docker
 import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/sirupsen/logrus"
 )
 
 type ContainerController struct {
-	cli *client.Client
+	cli          *client.Client
+	RegistryData *RegistryData
 }
 
 type VolumeMount struct {
@@ -15,13 +15,19 @@ type VolumeMount struct {
 	Volume   *types.Volume
 }
 
-func NewContainerController() (c *ContainerController, err error) {
-	c = new(ContainerController)
+type RegistryData struct {
+	Url      string
+	Username string
+	Password string
+	UseAuth  bool
+}
+
+func NewContainerController(registry *RegistryData) (c *ContainerController, err error) {
+	c = &ContainerController{RegistryData: registry}
 
 	c.cli, err = client.NewClientWithOpts(client.FromEnv)
 
 	if err != nil {
-		logrus.Errorf("Cannot init container client [error: %s]", err)
 		return nil, err
 	}
 
