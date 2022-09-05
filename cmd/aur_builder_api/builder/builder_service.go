@@ -13,7 +13,7 @@ func (s *AurBuilderService) BuildAurPackage(aurpackage *types.Package) (status s
 			UseAuth:  s.cfg.Auth,
 			Username: s.cfg.Username,
 			Password: s.cfg.Password,
-			Url:      s.cfg.RegistryUrl,
+			Image:    s.cfg.ContainerImage,
 		},
 	)
 
@@ -23,15 +23,15 @@ func (s *AurBuilderService) BuildAurPackage(aurpackage *types.Package) (status s
 		return status, err
 	}
 
-	err = controller.EnsureImage("gitlab.powerofcloud.de:5050/tim/aur-package-build:latest")
+	err = controller.EnsureImage()
 
 	if err != nil {
 		return status, err
 	}
 
 	containerId, err := controller.RunContainer(
-		"gitlab.powerofcloud.de:5050/tim/aur-package-build:latest",
-		[]string{"sh", "-c", "chmod +x /aur.sh && ./aur.sh google-chrome-dev"},
+		controller.RegistryData.Image,
+		[]string{"sh", "-c", "./aur.sh " + aurpackage.PackageBase},
 		nil,
 	)
 

@@ -1,6 +1,8 @@
 package docker
 
 import (
+	"errors"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 )
@@ -16,13 +18,18 @@ type VolumeMount struct {
 }
 
 type RegistryData struct {
-	Url      string
+	Image    string
 	Username string
 	Password string
 	UseAuth  bool
 }
 
 func NewContainerController(registry *RegistryData) (c *ContainerController, err error) {
+
+	if registry.Image == "" {
+		return nil, errors.New("container controller cannot be initialized cause image name not found")
+	}
+
 	c = &ContainerController{RegistryData: registry}
 
 	c.cli, err = client.NewClientWithOpts(client.FromEnv)

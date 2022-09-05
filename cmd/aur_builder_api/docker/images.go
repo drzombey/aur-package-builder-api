@@ -8,9 +8,10 @@ import (
 	"os"
 
 	"github.com/docker/docker/api/types"
+	"github.com/sirupsen/logrus"
 )
 
-func (c *ContainerController) EnsureImage(image string) (err error) {
+func (c *ContainerController) EnsureImage() (err error) {
 
 	var authConfig types.AuthConfig
 	var authStr string
@@ -30,7 +31,8 @@ func (c *ContainerController) EnsureImage(image string) (err error) {
 		}
 	}
 
-	reader, err := c.cli.ImagePull(context.Background(), image, types.ImagePullOptions{RegistryAuth: authStr})
+	logrus.Infof("Pulling new image: %s", c.RegistryData.Image)
+	reader, err := c.cli.ImagePull(context.Background(), c.RegistryData.Image, types.ImagePullOptions{RegistryAuth: authStr})
 
 	if err != nil {
 		return err
