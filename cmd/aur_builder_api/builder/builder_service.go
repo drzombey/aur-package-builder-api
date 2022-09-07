@@ -39,6 +39,14 @@ func (s *AurBuilderService) BuildAurPackage(aurpackage *types.Package) (status s
 		return "err", err
 	}
 
+	pkgName := fmt.Sprintf("%s-x86_64.pkg.tar.zst", aurpackage.PackageBase+"-"+aurpackage.Version)
+
+	err = controller.CopyFromContainer(containerId, "/pkg/"+pkgName, "", pkgName)
+
+	if err != nil {
+		return "err", err
+	}
+
 	status = fmt.Sprintf("started container with id: %s", containerId)
 	return status, nil
 }

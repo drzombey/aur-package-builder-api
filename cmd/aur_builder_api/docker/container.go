@@ -1,14 +1,18 @@
 package docker
 
 import (
+	"archive/tar"
 	"context"
+	"io"
+	"os"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 )
 
 func (c *ContainerController) WaitForContainer(containerId string) (state int64, err error) {
-	resultC, errC := c.cli.ContainerWait(context.Background(), containerId, "")
+	resultC, errC := c.cli.ContainerWait(context.Background(), containerId, container.WaitConditionNextExit)
 	select {
 	case err := <-errC:
 		return 0, err
@@ -48,4 +52,36 @@ func (c *ContainerController) ContainerById(containerId string) (container *type
 
 	container = &containers[0]
 	return container, nil
+}
+
+func (c *ContainerController) CopyFromContainer(containerId string, src, dest, pkgName string) error {
+	stream, _, err := c.cli.CopyFromContainer(context.Background(), containerId, src)
+
+	if err != nil {
+		return err
+	}
+
+	defer stream.Close()
+
+	reader := tar.NewReader(stream)
+
+	if _, err := reader.Next(); err != nil {
+		return err
+	}
+
+	file, err := os.Create(dest + pkgName)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	_, err = io.Copy(file, reader)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
