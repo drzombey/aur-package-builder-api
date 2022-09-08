@@ -33,13 +33,13 @@ func (c *ContainerController) RunContainer(image string, command []string, volum
 		return "", err
 	}
 
-	err = c.cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	_, err = c.WaitForContainer(resp.ID, container.WaitConditionNotRunning)
+
 	if err != nil {
 		return "", err
 	}
 
-	_, err = c.WaitForContainer(resp.ID, container.WaitConditionNextExit)
-
+	err = c.cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
 	if err != nil {
 		return "", err
 	}

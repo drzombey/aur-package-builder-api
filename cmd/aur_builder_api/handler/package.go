@@ -108,21 +108,7 @@ func HandleBuildPackage(c *gin.Context) {
 		return
 	}
 
-	containerId, err := builder.BuildAurPackage(&newPackage)
-
-	if err != nil {
-		handleError(c, err)
-		return
-	}
-
-	pkgPath, err := builder.CopyPackageToDestination(containerId, "", &newPackage)
-
-	if err != nil {
-		handleError(c, err)
-		return
-	}
-
-	builder.CleanUpBuildEnv(containerId)
+	containerId, err := builder.StartBuildAurPkgRoutine(&newPackage, "")
 
 	if err != nil {
 		handleError(c, err)
@@ -133,6 +119,5 @@ func HandleBuildPackage(c *gin.Context) {
 		"status":    http.StatusCreated,
 		"msg":       "Package currently creating",
 		"processId": containerId,
-		"pkgPath":   pkgPath,
 	})
 }
