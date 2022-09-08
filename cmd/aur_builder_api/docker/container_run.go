@@ -38,7 +38,7 @@ func (c *ContainerController) RunContainer(image string, command []string, volum
 		return "", err
 	}
 
-	_, err = c.WaitForContainer(resp.ID)
+	_, err = c.WaitForContainer(resp.ID, container.WaitConditionNextExit)
 
 	if err != nil {
 		return "", err

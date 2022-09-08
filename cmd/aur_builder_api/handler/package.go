@@ -68,22 +68,14 @@ func HandleBuildPackage(c *gin.Context) {
 	var newPackage types.Package
 
 	if err := c.BindJSON(&newPackage); err != nil {
-		logrus.Errorf("Error occured [error: %s]", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusBadRequest,
-			"msg":    "Invalid JSON structure",
-		})
+		handleInvalidJsonStructure(c, err)
 		return
 	}
 
 	result, err := repo.GetAlreadyBuildPackageByAurIdAndVersion(newPackage.ID, newPackage.Version)
 
 	if err != nil {
-		logrus.Errorf("Error occured [error: %s]", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"msg":    "An error occured internally",
-		})
+		handleError(c, err)
 		return
 	}
 
@@ -109,22 +101,38 @@ func HandleBuildPackage(c *gin.Context) {
 		return
 	}*/
 
-	builder := builder.NewAurBuilderService(&app.Config.Docker)
-
-	status, err := builder.BuildAurPackage(&newPackage)
+	builder, err := builder.NewAurBuilderService(&app.Config.Docker)
 
 	if err != nil {
-		logrus.Errorf("Error occured [error: %s]", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"msg":    "An error occured internally",
-		})
+		handleError(c, err)
+		return
+	}
+
+	containerId, err := builder.BuildAurPackage(&newPackage)
+
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	pkgPath, err := builder.CopyPackageToDestination(containerId, "", &newPackage)
+
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	builder.CleanUpBuildEnv(containerId)
+
+	if err != nil {
+		handleError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"status":          http.StatusCreated,
-		"msg":             "Package created",
-		"containerStatus": status,
+		"status":    http.StatusCreated,
+		"msg":       "Package currently creating",
+		"processId": containerId,
+		"pkgPath":   pkgPath,
 	})
 }

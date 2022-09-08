@@ -11,8 +11,8 @@ import (
 	"github.com/docker/docker/api/types/filters"
 )
 
-func (c *ContainerController) WaitForContainer(containerId string) (state int64, err error) {
-	resultC, errC := c.cli.ContainerWait(context.Background(), containerId, container.WaitConditionNextExit)
+func (c *ContainerController) WaitForContainer(containerId string, condition container.WaitCondition) (state int64, err error) {
+	resultC, errC := c.cli.ContainerWait(context.Background(), containerId, condition)
 	select {
 	case err := <-errC:
 		return 0, err
@@ -54,11 +54,11 @@ func (c *ContainerController) ContainerById(containerId string) (container *type
 	return container, nil
 }
 
-func (c *ContainerController) CopyFromContainer(containerId string, src, dest, pkgName string) error {
+func (c *ContainerController) CopyFromContainer(containerId string, src, dest, pkgName string) (filePathWithName string, err error) {
 	stream, _, err := c.cli.CopyFromContainer(context.Background(), containerId, src)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	defer stream.Close()
@@ -66,13 +66,15 @@ func (c *ContainerController) CopyFromContainer(containerId string, src, dest, p
 	reader := tar.NewReader(stream)
 
 	if _, err := reader.Next(); err != nil {
-		return err
+		return "", err
 	}
 
-	file, err := os.Create(dest + pkgName)
+	filePathWithName = dest + pkgName
+
+	file, err := os.Create(filePathWithName)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	defer file.Close()
@@ -80,8 +82,8 @@ func (c *ContainerController) CopyFromContainer(containerId string, src, dest, p
 	_, err = io.Copy(file, reader)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return filePathWithName, nil
 }

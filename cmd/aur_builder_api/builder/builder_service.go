@@ -3,50 +3,52 @@ package builder
 import (
 	"fmt"
 
-	"github.com/drzombey/aur-package-builder-api/cmd/aur_builder_api/docker"
 	"github.com/drzombey/aur-rpc-client-go/types"
 )
 
-func (s *AurBuilderService) BuildAurPackage(aurpackage *types.Package) (status string, err error) {
-	controller, err := docker.NewContainerController(
-		&docker.RegistryData{
-			UseAuth:  s.cfg.Auth,
-			Username: s.cfg.Username,
-			Password: s.cfg.Password,
-			Image:    s.cfg.ContainerImage,
-		},
-	)
-
-	status = "error"
+func (s *AurBuilderService) BuildAurPackage(aurpackage *types.Package) (containerId string, err error) {
 
 	if err != nil {
-		return status, err
+		return "", err
 	}
 
-	err = controller.EnsureImage()
+	err = s.controller.EnsureImage()
 
 	if err != nil {
-		return status, err
+		return "", err
 	}
 
-	containerId, err := controller.RunContainer(
-		controller.RegistryData.Image,
+	containerId, err = s.controller.RunContainer(
+		s.controller.RegistryData.Image,
 		[]string{"sh", "-c", "./aur.sh " + aurpackage.PackageBase},
 		nil,
 	)
 
 	if err != nil {
-		return "err", err
+		return "", err
 	}
 
-	pkgName := fmt.Sprintf("%s-x86_64.pkg.tar.zst", aurpackage.PackageBase+"-"+aurpackage.Version)
+	return containerId, nil
+}
 
-	err = controller.CopyFromContainer(containerId, "/pkg/"+pkgName, "", pkgName)
+func (s *AurBuilderService) CopyPackageToDestination(containerId, dest string, aurpkg *types.Package) (pkgPath string, err error) {
+	pkgName := fmt.Sprintf("%s-%s%s", aurpkg.PackageBase, aurpkg.Version, packageSuffix)
+
+	pkgPath, err = s.controller.CopyFromContainer(containerId, packagePath+pkgName, dest, pkgName)
 
 	if err != nil {
-		return "err", err
+		return "", err
 	}
 
-	status = fmt.Sprintf("started container with id: %s", containerId)
-	return status, nil
+	return pkgPath, nil
+}
+
+func (s *AurBuilderService) CleanUpBuildEnv(containerId string) (err error) {
+	err = s.controller.RemoveContainerById(containerId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
