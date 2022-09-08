@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	setupLogFormatter()
+	setupLogging()
 	loadConfig()
 	setupWebserver()
 }
@@ -33,11 +33,10 @@ func setupWebserver() {
 	server.Run(fmt.Sprintf(":%d", app.Config.WebserverPort))
 }
 
-func setupLogFormatter() {
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:   true,
-		FullTimestamp: true,
-	})
+func setupLogging() {
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetReportCaller(true)
+	log.SetLevel(log.DebugLevel)
 }
 
 func loadConfig() {
