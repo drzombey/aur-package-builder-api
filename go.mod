@@ -2,11 +2,8 @@ module github.com/drzombey/aur-package-builder-api
 
 go 1.19
 
-replace github.com/drzombey/aur-rpc-client-go v1.0.1 => ../aur-rpc-client-go
-
 require (
 	github.com/docker/docker v20.10.17+incompatible
-	github.com/drzombey/aur-rpc-client-go v1.0.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.12.0

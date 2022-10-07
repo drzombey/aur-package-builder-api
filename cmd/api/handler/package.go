@@ -5,9 +5,9 @@ import (
 
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	repository "github.com/drzombey/aur-package-builder-api/cmd/api/db/repo"
+	"github.com/drzombey/aur-package-builder-api/pkg/aur"
 	"github.com/drzombey/aur-package-builder-api/pkg/builder"
 	"github.com/drzombey/aur-package-builder-api/pkg/docker"
-	"github.com/drzombey/aur-rpc-client-go/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -88,7 +88,7 @@ func HandleBuildPackage(c *gin.Context) {
 		return
 	}
 
-	var newPackage types.Package
+	var newPackage aur.Package
 
 	if err := c.BindJSON(&newPackage); err != nil {
 		handleInvalidJsonStructure(c, err)

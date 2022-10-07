@@ -5,17 +5,16 @@ import (
 
 	"github.com/drzombey/aur-package-builder-api/pkg/aur"
 	customMongo "github.com/drzombey/aur-package-builder-api/pkg/mongo"
-	"github.com/drzombey/aur-rpc-client-go/types"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type PackageRepo struct {
-	store customMongo.IMongoStore[types.Package]
+	store customMongo.IMongoStore[aur.Package]
 }
 
 func NewPackageRepo(config customMongo.MongoDbConfig) (*PackageRepo, error) {
-	store, err := customMongo.New[types.Package](
+	store, err := customMongo.New[aur.Package](
 		config,
 		"package",
 	)
@@ -30,7 +29,7 @@ func NewPackageRepo(config customMongo.MongoDbConfig) (*PackageRepo, error) {
 	}, nil
 }
 
-func (pr PackageRepo) GetPackageFromAur(name string) ([]types.Package, error) {
+func (pr PackageRepo) GetPackageFromAur(name string) ([]aur.Package, error) {
 	response, err := aur.FindPackageByNameInAur(name)
 	if err != nil {
 		logrus.Errorf("Failed to get packages from arch user repository rpc interface [error: %s]", err)
@@ -39,7 +38,7 @@ func (pr PackageRepo) GetPackageFromAur(name string) ([]types.Package, error) {
 	return response.Packages, nil
 }
 
-func (pr PackageRepo) GetAlreadyBuildPackageByAurIdAndVersion(id int64, version string) (*types.Package, error) {
+func (pr PackageRepo) GetAlreadyBuildPackageByAurIdAndVersion(id int64, version string) (*aur.Package, error) {
 	filter := customMongo.StoreFilter{
 		"id":      id,
 		"version": version,
@@ -58,7 +57,7 @@ func (pr PackageRepo) GetAlreadyBuildPackageByAurIdAndVersion(id int64, version 
 	return foundPackage, nil
 }
 
-func (pr PackageRepo) GetAlreadyBuildPackages() (*[]types.Package, error) {
+func (pr PackageRepo) GetAlreadyBuildPackages() (*[]aur.Package, error) {
 	result, err := pr.store.Get(context.Background())
 
 	if err != nil {
@@ -69,7 +68,7 @@ func (pr PackageRepo) GetAlreadyBuildPackages() (*[]types.Package, error) {
 	return result, nil
 }
 
-func (pr PackageRepo) AddAurPackage(model types.Package) error {
+func (pr PackageRepo) AddAurPackage(model aur.Package) error {
 	err := pr.store.Create(context.Background(), model)
 
 	if err != nil {
