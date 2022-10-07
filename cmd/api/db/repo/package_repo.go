@@ -1,0 +1,81 @@
+package repository
+
+import (
+	"context"
+
+	"github.com/drzombey/aur-package-builder-api/pkg/aur"
+	customMongo "github.com/drzombey/aur-package-builder-api/pkg/mongo"
+	"github.com/drzombey/aur-rpc-client-go/types"
+	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type PackageRepo struct {
+	store customMongo.IMongoStore[types.Package]
+}
+
+func NewPackageRepo(config customMongo.MongoDbConfig) (*PackageRepo, error) {
+	store, err := customMongo.New[types.Package](
+		config,
+		"package",
+	)
+
+	if err != nil {
+		logrus.Errorf("Failed to initalize mongodb [error: %s]", err)
+		return nil, err
+	}
+
+	return &PackageRepo{
+		store: store,
+	}, nil
+}
+
+func (pr PackageRepo) GetPackageFromAur(name string) ([]types.Package, error) {
+	response, err := aur.FindPackageByNameInAur(name)
+	if err != nil {
+		logrus.Errorf("Failed to get packages from arch user repository rpc interface [error: %s]", err)
+		return nil, err
+	}
+	return response.Packages, nil
+}
+
+func (pr PackageRepo) GetAlreadyBuildPackageByAurIdAndVersion(id int64, version string) (*types.Package, error) {
+	filter := customMongo.StoreFilter{
+		"id":      id,
+		"version": version,
+	}
+
+	foundPackage, err := pr.store.FindOneBy(context.TODO(), filter)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		logrus.Errorf("Failed to find package from mongodb [error: %s]", err)
+		return nil, err
+	}
+
+	return foundPackage, nil
+}
+
+func (pr PackageRepo) GetAlreadyBuildPackages() (*[]types.Package, error) {
+	result, err := pr.store.Get(context.Background())
+
+	if err != nil {
+		logrus.Errorf("Failed to get packages in mongodb [error: %s]", err)
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (pr PackageRepo) AddAurPackage(model types.Package) error {
+	err := pr.store.Create(context.Background(), model)
+
+	if err != nil {
+		logrus.Errorf("Failed to store package in mongodb [error: %s]", err)
+		return err
+	}
+
+	return nil
+}
