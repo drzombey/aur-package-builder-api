@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/drzombey/aur-rpc-client-go/types"
+	"github.com/drzombey/aur-package-builder-api/pkg/aur"
 	"github.com/sirupsen/logrus"
 )
 
-func (s *AurBuilderService) StartBuildAurPkgRoutine(aurPkg *types.Package, dest string) (containerId string, err error) {
+func (s *AurBuilderService) StartBuildAurPkgRoutine(aurPkg *aur.Package, dest string) (containerId string, err error) {
 	containerId, err = s.buildAurPackage(aurPkg)
 
 	if err != nil {
@@ -32,7 +32,7 @@ func (s *AurBuilderService) StartBuildAurPkgRoutine(aurPkg *types.Package, dest 
 	return containerId, nil
 }
 
-func (s *AurBuilderService) buildAurPackage(aurPkg *types.Package) (containerId string, err error) {
+func (s *AurBuilderService) buildAurPackage(aurPkg *aur.Package) (containerId string, err error) {
 
 	logrus.Debug("Ensure image is available on system")
 	err = s.controller.EnsureImage()
@@ -59,7 +59,7 @@ func (s *AurBuilderService) buildAurPackage(aurPkg *types.Package) (containerId 
 	return containerId, nil
 }
 
-func (s *AurBuilderService) copyPackageToDestination(containerId, dest string, aurPkg *types.Package) (pkgPath string, err error) {
+func (s *AurBuilderService) copyPackageToDestination(containerId, dest string, aurPkg *aur.Package) (pkgPath string, err error) {
 	pkgName := fmt.Sprintf("%s-%s%s", aurPkg.PackageBase, aurPkg.Version, packageSuffix)
 
 	_, err = s.controller.WaitForContainer(containerId, container.WaitConditionNextExit)
