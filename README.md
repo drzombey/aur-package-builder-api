@@ -42,7 +42,7 @@ air
 
 Contributions, issues and feature requests are welcome!<br />Feel free to check the [issues page].(https://github.com/drzombey/aur-package-builder-api/issues). 
 
-If you have any Features that you would like to implement, please create a issue that we can discuss about this.
+If you have any features that you would like to implement, please create an issue to discuss your idea.
 
 ## Show your support
 
