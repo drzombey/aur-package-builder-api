@@ -5,7 +5,7 @@
   </a>
 </p>
 
-> This go API build arch user repository packages automatically
+> This go API builds arch linux user repository packages automatically.
 
 ### 🏠 [Homepage](https://github.com/drzombey/aur-package-builder-api)
 
