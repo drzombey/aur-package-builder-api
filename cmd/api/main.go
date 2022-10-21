@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/drzombey/aur-package-builder-api/pkg/tracing"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	"github.com/drzombey/aur-package-builder-api/cmd/api/handler"
@@ -25,6 +27,9 @@ func main() {
 	setupLogging()
 	loadConfig()
 
+	closer := tracing.Setup(app.JaegerURL)
+	defer closer()
+
 	gin.SetMode(gin.ReleaseMode)
 
 	if app.Debug {
@@ -32,6 +37,7 @@ func main() {
 	}
 
 	server := gin.Default()
+	server.Use(otelgin.Middleware("aur-package-builder-api"))
 	registerHandlers(server)
 	server.Run(fmt.Sprintf(":%d", app.WebserverPort))
 }
@@ -48,6 +54,7 @@ func loadConfig() {
 
 	viper.SetDefault("webserverPort", 8080)
 	viper.SetDefault("webserverMode", "production")
+	viper.SetDefault("jaegerURL", "http://localhost:14268/api/traces")
 	viper.SetDefault("database", map[string]interface{}{
 		"host":     "localhost",
 		"port":     27017,

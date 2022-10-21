@@ -1,6 +1,7 @@
 webserverPort: 8080
 debug: true
 logLevel: info
+jaegerURL: "http://localhost:14268/api/traces"
 database:
   port: 27017
   host: localhost
