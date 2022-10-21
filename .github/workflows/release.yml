@@ -1,11 +1,5 @@
 name: "Release Build Binary"
 
-on:
-  release:
-    types: [ created ]
-  push:
-    branches: ['feature/add-docker-release-pipeline']
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -14,6 +8,9 @@ jobs:
   releases-matrix:
     name: Release Go Binary for api
     runs-on: ubuntu-latest
+    on:
+      release:
+        types: [ created ]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -45,7 +42,11 @@ jobs:
           retry: 8
 
   docker:
+    name: Release Docker image for api
     runs-on: ubuntu-latest
+    on:
+      push:
+        branches: [ 'feature/add-docker-release-pipeline' ]
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
