@@ -4,6 +4,12 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+on:
+  push:
+    branches: [ 'feature/add-docker-release-pipeline' ]
+  release:
+    types: [ created ]
+
 jobs:
   releases-matrix:
     name: Release Go Binary for api
