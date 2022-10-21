@@ -1,4 +1,7 @@
-FROM golang:alpine as BUILDER
+FROM --platform=$BUILDPLATFORM golang:alpine as BUILDER
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
 WORKDIR /aur-package-builder
 
