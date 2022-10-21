@@ -5,8 +5,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 on:
-  push:
-    branches: [ 'feature/add-docker-release-pipeline' ]
   release:
     types: [ created ]
 
