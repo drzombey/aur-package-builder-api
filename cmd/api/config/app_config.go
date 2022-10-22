@@ -9,6 +9,7 @@ type AppConfig struct {
 	WebserverPort int
 	Debug         bool
 	LogLevel      string
+	JaegerURL     string
 	Database      mongo.MongoDbConfig
 	Docker        docker.DockerConfig
 }

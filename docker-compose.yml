@@ -20,3 +20,13 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: "${MONGO_ROOT_USER:-root}"
       ME_CONFIG_MONGODB_ADMINPASSWORD: "${MONGO_ROOT_PASS:-example}"
       ME_CONFIG_MONGODB_URL: "mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASS:-example}@mongo:27017/"
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
