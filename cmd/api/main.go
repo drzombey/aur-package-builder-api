@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/drzombey/aur-package-builder-api/pkg/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	"github.com/drzombey/aur-package-builder-api/cmd/api/handler"
 	log "github.com/sirupsen/logrus"
