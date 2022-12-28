@@ -6,6 +6,7 @@ import (
 
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	"github.com/drzombey/aur-package-builder-api/cmd/api/handler"
+	"github.com/drzombey/aur-package-builder-api/pkg/scheduler"
 	"github.com/drzombey/aur-package-builder-api/pkg/tracing"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -15,8 +16,9 @@ import (
 )
 
 var (
-	app        config.AppConfig
-	configPath string
+	app           config.AppConfig
+	configPath    string
+	taskScheduler *scheduler.TasksScheduler
 )
 
 func init() {
@@ -40,6 +42,7 @@ func main() {
 	server := gin.Default()
 	server.Use(otelgin.Middleware("aur-package-builder-api"))
 	registerHandlers(server)
+	initBackgroundTasks()
 	server.Run(fmt.Sprintf(":%d", app.WebserverPort))
 }
 
@@ -89,4 +92,8 @@ func registerHandlers(s *gin.Engine) {
 	s.GET(fmt.Sprintf("%s/build/package", version1), handler.HandleGetAlreadyBuildPackages)
 	s.POST(fmt.Sprintf("%s/build/package", version1), handler.HandleBuildPackage)
 	s.GET(fmt.Sprintf("%s/aurpackage", version1), handler.HandleGetAurPackageByName)
+}
+
+func initBackgroundTasks() {
+	taskScheduler = scheduler.NewTasksScheduler()
 }
