@@ -3,8 +3,8 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = []
-  bin = "./tmp/main --config_path=/cmd/api/config.yml"
+  args_bin = ["--config_path=$(pwd)/cmd/api"]
+  bin = "./tmp/main"
   cmd = "go build -o ./tmp/main ./cmd/api/main.go"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]

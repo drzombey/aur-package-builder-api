@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/drzombey/aur-package-builder-api/pkg/tracing"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	"github.com/drzombey/aur-package-builder-api/cmd/api/handler"
+	"github.com/drzombey/aur-package-builder-api/pkg/tracing"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -20,6 +21,7 @@ var (
 
 func init() {
 	flag.StringVar(&configPath, "config_path", ".", "path to search for a config.yaml")
+	flag.Parse()
 }
 
 func main() {
