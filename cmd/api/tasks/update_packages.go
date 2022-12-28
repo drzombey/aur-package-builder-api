@@ -11,7 +11,6 @@ import (
 
 func (at *ApiTask) UpdateAllPackages(taskId uuid.UUID, taskName string) {
 	repo, err := repository.NewPackageRepo(at.app.Database)
-
 	if err != nil {
 		message := fmt.Sprintf("Cannot establish database connection [Error: %s]", err)
 		at.logTaskError(taskId, taskName, message)
@@ -19,7 +18,6 @@ func (at *ApiTask) UpdateAllPackages(taskId uuid.UUID, taskName string) {
 	}
 
 	packages, err := repo.GetAlreadyBuildPackages()
-
 	if err != nil {
 		message := fmt.Sprintf("Cannot fetch packages [Error: %s]", err)
 		at.logTaskError(taskId, taskName, message)
@@ -34,17 +32,15 @@ func (at *ApiTask) UpdateAllPackages(taskId uuid.UUID, taskName string) {
 	}
 
 	containerController, err := docker.NewContainerController(&registryData)
-
 	if err != nil {
 		message := fmt.Sprintf("Cannot initialize container controller [Error: %s]", err)
 		at.logTaskError(taskId, taskName, message)
 		return
 	}
 
-	builder, err := builder.NewAurBuilderService(containerController)
-
+	service, err := builder.NewAurBuilderService(containerController, at.storageProvider)
 	if err != nil {
-		message := fmt.Sprintf("Cannot initialize builder service [Error: %s]", err)
+		message := fmt.Sprintf("Cannot initialize service service [Error: %s]", err)
 		at.logTaskError(taskId, taskName, message)
 		return
 	}
@@ -68,9 +64,20 @@ func (at *ApiTask) UpdateAllPackages(taskId uuid.UUID, taskName string) {
 			continue
 		}
 
-		repo.DeleteAurPackage(pkg)
-		repo.AddAurPackage(*aurPkg)
-		builder.StartBuildAurPkgRoutine(aurPkg, at.app.PackagePath)
+		err = repo.DeleteAurPackage(pkg)
+		if err != nil {
+			return
+		}
+
+		err = repo.AddAurPackage(*aurPkg)
+		if err != nil {
+			return
+		}
+
+		_, err = service.StartBuildAurPkgRoutine(aurPkg, at.app.PackagePath)
+		if err != nil {
+			return
+		}
 	}
 
 	at.logTaskCompleted(taskId, taskName)

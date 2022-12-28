@@ -4,16 +4,17 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	"github.com/drzombey/aur-package-builder-api/cmd/api/handler"
 	"github.com/drzombey/aur-package-builder-api/cmd/api/tasks"
 	"github.com/drzombey/aur-package-builder-api/pkg/scheduler"
+	"github.com/drzombey/aur-package-builder-api/pkg/storage"
 	"github.com/drzombey/aur-package-builder-api/pkg/tracing"
-	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -61,6 +62,7 @@ func loadConfig() {
 	viper.SetDefault("webserverMode", "production")
 	viper.SetDefault("jaegerURL", "http://localhost:14268/api/traces")
 	viper.SetDefault("packagePath", ".")
+	viper.SetDefault("storageProvider", "")
 	viper.SetDefault("database", map[string]interface{}{
 		"host":     "localhost",
 		"port":     27017,
@@ -87,7 +89,7 @@ func loadConfig() {
 }
 
 func registerHandlers(s *gin.Engine) {
-	handler.InitHandlers(&app)
+	handler.InitHandlers(&app, getStorageProvider())
 
 	version1 := "/api/v1"
 
@@ -96,8 +98,17 @@ func registerHandlers(s *gin.Engine) {
 	s.GET(fmt.Sprintf("%s/aurpackage", version1), handler.HandleGetAurPackageByName)
 }
 
+func getStorageProvider() storage.Provider {
+	switch app.StorageProvider {
+	case "object":
+		return storage.NewS3Provider(&app.Bucket)
+	default:
+		return storage.NewFilesystemProvider(app.PackagePath)
+	}
+}
+
 func initBackgroundTasks() {
 	taskScheduler = scheduler.NewTasksScheduler()
-	apiTask := tasks.NewApiTask(app)
-	taskScheduler.ScheduleTask(apiTask.UpdateAllPackages, 36000, "UpdatePackagesTask")
+	apiTask := tasks.NewApiTask(app, getStorageProvider())
+	taskScheduler.ScheduleTask(apiTask.UpdateAllPackages, 3600, "UpdatePackagesTask")
 }

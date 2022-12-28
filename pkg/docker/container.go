@@ -1,14 +1,11 @@
 package docker
 
 import (
-	"archive/tar"
 	"context"
-	"io"
-	"os"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"io"
 )
 
 func (c *ContainerController) WaitForContainer(containerId string, condition container.WaitCondition) (state int64, err error) {
@@ -54,40 +51,12 @@ func (c *ContainerController) ContainerById(containerId string) (container *type
 	return container, nil
 }
 
-func (c *ContainerController) CopyFromContainer(containerId string, src, dest, pkgName string) (filePathWithName string, err error) {
-	stream, _, err := c.cli.CopyFromContainer(context.Background(), containerId, src)
+func (c *ContainerController) CopyFromContainer(containerId string, src string) (stream io.ReadCloser, err error) {
+	stream, _, err = c.cli.CopyFromContainer(context.Background(), containerId, src)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	defer stream.Close()
-
-	reader := tar.NewReader(stream)
-
-	if _, err := reader.Next(); err != nil {
-		return "", err
-	}
-
-	if _, err := os.Stat(dest); os.IsNotExist(err) {
-		os.MkdirAll(dest, os.ModePerm)
-	}
-
-	filePathWithName = dest + "/" + pkgName
-
-	file, err := os.Create(filePathWithName)
-
-	if err != nil {
-		return "", err
-	}
-
-	defer file.Close()
-
-	_, err = io.Copy(file, reader)
-
-	if err != nil {
-		return "", err
-	}
-
-	return filePathWithName, nil
+	return stream, nil
 }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/drzombey/aur-package-builder-api/pkg/storage"
 	"net/http"
 
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
@@ -12,10 +13,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var app *config.AppConfig
+var (
+	app             *config.AppConfig
+	storageProvider storage.Provider
+)
 
-func InitHandlers(a *config.AppConfig) {
+func InitHandlers(a *config.AppConfig, sp storage.Provider) {
 	app = a
+	storageProvider = sp
 }
 
 func HandleGetAlreadyBuildPackages(c *gin.Context) {
@@ -96,7 +101,6 @@ func HandleBuildPackage(c *gin.Context) {
 	}
 
 	result, err := repo.GetAlreadyBuildPackageByAurIdAndVersion(newPackage.ID, newPackage.Version)
-
 	if err != nil {
 		handleError(c, err)
 		return
@@ -114,7 +118,6 @@ func HandleBuildPackage(c *gin.Context) {
 	}
 
 	err = repo.AddAurPackage(newPackage)
-
 	if err != nil {
 		logrus.Errorf("Error occured [error: %s]", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -132,20 +135,18 @@ func HandleBuildPackage(c *gin.Context) {
 	}
 
 	containerController, err := docker.NewContainerController(&registryData)
-
 	if err != nil {
 		handleError(c, err)
 		return
 	}
 
-	builder, err := builder.NewAurBuilderService(containerController)
-
+	builderService, err := builder.NewAurBuilderService(containerController, storageProvider)
 	if err != nil {
 		handleError(c, err)
 		return
 	}
 
-	containerId, err := builder.StartBuildAurPkgRoutine(&newPackage, app.PackagePath)
+	containerId, err := builderService.StartBuildAurPkgRoutine(&newPackage, app.PackagePath)
 
 	if err != nil {
 		handleError(c, err)
