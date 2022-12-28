@@ -1,11 +1,14 @@
 package builder
 
 import (
+	"archive/tar"
+	"context"
 	"fmt"
-
 	"github.com/docker/docker/api/types/container"
 	"github.com/drzombey/aur-package-builder-api/pkg/aur"
 	"github.com/sirupsen/logrus"
+	"io"
+	"os"
 )
 
 func (s *AurBuilderService) StartBuildAurPkgRoutine(aurPkg *aur.Package, dest string) (containerId string, err error) {
@@ -16,7 +19,7 @@ func (s *AurBuilderService) StartBuildAurPkgRoutine(aurPkg *aur.Package, dest st
 	}
 
 	go func() {
-		_, err = s.copyPackageToDestination(containerId, dest, aurPkg)
+		err = s.savePackage(containerId, aurPkg)
 
 		if err != nil {
 			logrus.Errorf("Copying package from container %s not possible [error: %s]", containerId, err)
@@ -59,21 +62,58 @@ func (s *AurBuilderService) buildAurPackage(aurPkg *aur.Package) (containerId st
 	return containerId, nil
 }
 
-func (s *AurBuilderService) copyPackageToDestination(containerId, dest string, aurPkg *aur.Package) (pkgPath string, err error) {
+func (s *AurBuilderService) savePackage(containerId string, aurPkg *aur.Package) (err error) {
 	pkgName := fmt.Sprintf("%s-%s%s", aurPkg.PackageBase, aurPkg.Version, packageSuffix)
 
 	_, err = s.controller.WaitForContainer(containerId, container.WaitConditionNextExit)
 	if err != nil {
+		return err
+	}
+
+	stream, err := s.controller.CopyFromContainer(containerId, packagePath+pkgName)
+
+	if err != nil {
+		logrus.Errorf("Got error: %s", err)
+		return err
+	}
+
+	err = s.storageProvider.AddFile(context.Background(), pkgName, stream)
+	if err != nil {
+		logrus.Errorf("Got error: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *AurBuilderService) createPackageFileFromStream(stream io.ReadCloser, dest, pkgName string) (filenameWithPath string, err error) {
+	reader := tar.NewReader(stream)
+
+	if _, err := reader.Next(); err != nil {
 		return "", err
 	}
 
-	pkgPath, err = s.controller.CopyFromContainer(containerId, packagePath+pkgName, dest, pkgName)
+	if _, err := os.Stat(dest); os.IsNotExist(err) {
+		os.MkdirAll(dest, os.ModePerm)
+	}
+
+	filenameWithPath = dest + "/" + pkgName
+
+	file, err := os.Create(filenameWithPath)
 
 	if err != nil {
 		return "", err
 	}
 
-	return pkgPath, nil
+	defer file.Close()
+
+	_, err = io.Copy(file, reader)
+
+	if err != nil {
+		return "", err
+	}
+
+	return filenameWithPath, nil
 }
 
 func (s *AurBuilderService) cleanUpBuildEnv(containerId string) (err error) {

@@ -14,3 +14,10 @@ docker:
   username: <registry-username>
   password: <registry-password>
   registryUrl: <registry-url>
+bucket:
+  name: "test"
+  accessKey: ""
+  secretKey: ""
+  endpoint: ""
+  region: ""
+  ssl: false
