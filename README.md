@@ -16,6 +16,14 @@ go mod tidy
 ```
 
 ## Usage
+Go into the project folder
+
+### First create a config yaml
+Execute the following command and change all sample values in your config to your needs.
+
+```sh
+cd cmd/api && cp config.sample.yml config.yml
+```
 
 ### Native way
 ```sh
@@ -23,6 +31,9 @@ cd cmd/api && go run main.go
 ```
 
 ### To use air
+First you have to install air. Instructions [here](https://github.com/cosmtrek/air).
+After air is installed, execute the command in root project folder.
+
 ```sh
 air
 ```
