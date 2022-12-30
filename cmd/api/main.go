@@ -60,6 +60,7 @@ func loadConfig() {
 	viper.SetDefault("webserverPort", 8080)
 	viper.SetDefault("webserverMode", "production")
 	viper.SetDefault("jaegerURL", "http://localhost:14268/api/traces")
+	viper.SetDefault("packagePath", ".")
 	viper.SetDefault("database", map[string]interface{}{
 		"host":     "localhost",
 		"port":     27017,
@@ -98,5 +99,5 @@ func registerHandlers(s *gin.Engine) {
 func initBackgroundTasks() {
 	taskScheduler = scheduler.NewTasksScheduler()
 	apiTask := tasks.NewApiTask(app)
-	taskScheduler.ScheduleTask(apiTask.UpdateAllPackages, 5, "UpdatePackagesTask")
+	taskScheduler.ScheduleTask(apiTask.UpdateAllPackages, 36000, "UpdatePackagesTask")
 }

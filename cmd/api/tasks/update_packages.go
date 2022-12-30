@@ -70,7 +70,7 @@ func (at *ApiTask) UpdateAllPackages(taskId uuid.UUID, taskName string) {
 
 		repo.DeleteAurPackage(pkg)
 		repo.AddAurPackage(*aurPkg)
-		builder.StartBuildAurPkgRoutine(aurPkg, ".")
+		builder.StartBuildAurPkgRoutine(aurPkg, at.app.PackagePath)
 	}
 
 	at.logTaskCompleted(taskId, taskName)

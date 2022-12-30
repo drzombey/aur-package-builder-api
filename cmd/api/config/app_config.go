@@ -10,6 +10,7 @@ type AppConfig struct {
 	Debug         bool
 	LogLevel      string
 	JaegerURL     string
+	PackagePath   string
 	Database      mongo.MongoDbConfig
 	Docker        docker.DockerConfig
 }
