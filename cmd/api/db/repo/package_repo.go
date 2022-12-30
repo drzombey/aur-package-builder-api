@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/drzombey/aur-package-builder-api/pkg/aur"
 	customMongo "github.com/drzombey/aur-package-builder-api/pkg/mongo"
@@ -27,6 +28,20 @@ func NewPackageRepo(config customMongo.MongoDbConfig) (*PackageRepo, error) {
 	return &PackageRepo{
 		store: store,
 	}, nil
+}
+
+func (pr PackageRepo) GetAurPackageInfoByName(name string) (*aur.Package, error) {
+	response, err := aur.GetPackageInfoByName(name)
+	if err != nil {
+		logrus.Errorf("Failed to get package from arch user repository rpc interface [error: %s]", err)
+		return nil, err
+	}
+
+	if response.ResultCount > 1 {
+		return nil, errors.New("Multiple packages responded from aur")
+	}
+
+	return &response.Packages[0], nil
 }
 
 func (pr PackageRepo) GetPackageFromAur(name string) ([]aur.Package, error) {
@@ -73,6 +88,23 @@ func (pr PackageRepo) AddAurPackage(model aur.Package) error {
 
 	if err != nil {
 		logrus.Errorf("Failed to store package in mongodb [error: %s]", err)
+		return err
+	}
+
+	return nil
+}
+
+func (pr PackageRepo) DeleteAurPackage(model aur.Package) error {
+
+	filter := customMongo.StoreFilter{
+		"id":      model.ID,
+		"version": model.Version,
+	}
+
+	err := pr.store.Delete(context.Background(), filter)
+
+	if err != nil {
+		logrus.Errorf("Failed to delete package in mongodb [error: %s]", err)
 		return err
 	}
 

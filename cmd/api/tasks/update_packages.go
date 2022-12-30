@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	repository "github.com/drzombey/aur-package-builder-api/cmd/api/db/repo"
-	"github.com/drzombey/aur-package-builder-api/pkg/aur"
 	"github.com/drzombey/aur-package-builder-api/pkg/builder"
 	"github.com/drzombey/aur-package-builder-api/pkg/docker"
 	"github.com/google/uuid"
@@ -51,14 +50,28 @@ func (at *ApiTask) UpdateAllPackages(taskId uuid.UUID, taskName string) {
 	}
 
 	for _, pkg := range *packages {
-		//todo check for updated package and build new version.
-		aur.FindPackageByNameInAur()
+		aurPkg, err := repo.GetAurPackageInfoByName(pkg.Name)
 
 		if err != nil {
-			message := fmt.Sprintf("Cannot initialize builder service [Error: %s]", err)
+			message := fmt.Sprintf("Cannot get information about package %s by aur rpc call [Error: %s]", pkg.Name, err)
 			at.logTaskError(taskId, taskName, message)
-			return
+			continue
 		}
+
+		if aurPkg == nil {
+			message := fmt.Sprintf("Package %s with package base id %s not found in aur ", pkg.Name, string(pkg.PackageBaseID))
+			at.logTaskError(taskId, taskName, message)
+			continue
+		}
+
+		if aurPkg.Version == pkg.Version {
+			continue
+		}
+
+		repo.DeleteAurPackage(pkg)
+		repo.AddAurPackage(*aurPkg)
+		builder.StartBuildAurPkgRoutine(aurPkg, ".")
 	}
 
+	at.logTaskCompleted(taskId, taskName)
 }

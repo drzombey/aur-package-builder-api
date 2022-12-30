@@ -6,6 +6,7 @@ import (
 
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	"github.com/drzombey/aur-package-builder-api/cmd/api/handler"
+	"github.com/drzombey/aur-package-builder-api/cmd/api/tasks"
 	"github.com/drzombey/aur-package-builder-api/pkg/scheduler"
 	"github.com/drzombey/aur-package-builder-api/pkg/tracing"
 	log "github.com/sirupsen/logrus"
@@ -96,4 +97,6 @@ func registerHandlers(s *gin.Engine) {
 
 func initBackgroundTasks() {
 	taskScheduler = scheduler.NewTasksScheduler()
+	apiTask := tasks.NewApiTask(app)
+	taskScheduler.ScheduleTask(apiTask.UpdateAllPackages, 5, "UpdatePackagesTask")
 }
