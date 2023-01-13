@@ -20,6 +20,7 @@ type IMongoStore[T any] interface {
 	FindOneBy(ctx context.Context, filter interface{}) (*T, error)
 	FindBy(ctx context.Context, filter interface{}) (*[]T, error)
 	Get(ctx context.Context) (*[]T, error)
+	Delete(ctx context.Context, filter interface{}) error
 	Create(ctx context.Context, obj T) error
 }
 
@@ -123,6 +124,15 @@ func (s MongoStore[T]) Get(ctx context.Context) (*[]T, error) {
 
 func (s MongoStore[T]) Create(ctx context.Context, obj T) error {
 	_, err := s.collection.InsertOne(ctx, obj)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s MongoStore[T]) Delete(ctx context.Context, filter interface{}) error {
+	_, err := s.collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return err
 	}

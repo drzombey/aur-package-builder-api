@@ -69,7 +69,11 @@ func (c *ContainerController) CopyFromContainer(containerId string, src, dest, p
 		return "", err
 	}
 
-	filePathWithName = dest + pkgName
+	if _, err := os.Stat(dest); os.IsNotExist(err) {
+		os.MkdirAll(dest, os.ModePerm)
+	}
+
+	filePathWithName = dest + "/" + pkgName
 
 	file, err := os.Create(filePathWithName)
 

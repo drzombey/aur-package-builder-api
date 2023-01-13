@@ -28,6 +28,7 @@ type SearchType int
 
 const (
 	Search SearchType = iota
+	Info
 	Multiinfo
 	Error
 )
@@ -36,6 +37,8 @@ func (s SearchType) String() string {
 	switch s {
 	case Search:
 		return "search"
+	case Info:
+		return "info"
 	case Multiinfo:
 		return "multiinfo"
 	case Error:

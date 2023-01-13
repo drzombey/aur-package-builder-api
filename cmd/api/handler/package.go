@@ -145,7 +145,7 @@ func HandleBuildPackage(c *gin.Context) {
 		return
 	}
 
-	containerId, err := builder.StartBuildAurPkgRoutine(&newPackage, ".")
+	containerId, err := builder.StartBuildAurPkgRoutine(&newPackage, app.PackagePath)
 
 	if err != nil {
 		handleError(c, err)
