@@ -59,7 +59,7 @@ func (at *ApiTask) UpdateAllPackages(taskId uuid.UUID, taskName string) {
 		}
 
 		if aurPkg == nil {
-			message := fmt.Sprintf("Package %s with package base id %s not found in aur ", pkg.Name, string(pkg.PackageBaseID))
+			message := fmt.Sprintf("Package %s with package base id %d not found in aur ", pkg.Name, pkg.PackageBaseID)
 			at.logTaskError(taskId, taskName, message)
 			continue
 		}
