@@ -104,7 +104,7 @@ func HandleBuildPackage(c *gin.Context) {
 
 	if result != nil {
 		if result.Version == newPackage.Version {
-			logrus.Warnf("Warning package already exist Package[id: %s, name: %s, version: %s]", result.ID, result.Name, result.Version)
+			logrus.Warnf("Warning package already exist Package[id: %d, name: %s, version: %s]", result.ID, result.Name, result.Version)
 			c.JSON(http.StatusOK, gin.H{
 				"status": http.StatusOK,
 				"msg":    "Package already exist, please see the mirror if it's available",
