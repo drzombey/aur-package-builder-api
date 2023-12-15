@@ -15,7 +15,7 @@ func (c *ContainerController) RunContainer(image string, command []string, volum
 	for _, volume := range volumes {
 		mount := mount.Mount{
 			Type:   mount.TypeVolume,
-			Source: volume.Volume.Name,
+			Source: volume.Volume.Name(),
 			Target: volume.HostPath,
 		}
 		volumeMounts = append(volumeMounts, mount)

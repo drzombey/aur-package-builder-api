@@ -2,8 +2,8 @@ package docker
 
 import (
 	"errors"
+	"github.com/docker/docker/volume"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 )
 
@@ -14,7 +14,7 @@ type ContainerController struct {
 
 type VolumeMount struct {
 	HostPath string
-	Volume   *types.Volume
+	Volume   volume.Volume
 }
 
 type RegistryData struct {
