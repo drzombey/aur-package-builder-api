@@ -7,18 +7,19 @@ import (
 	"io"
 	"os"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/sirupsen/logrus"
 )
 
 func (c *ContainerController) EnsureImage() (err error) {
 
-	var authConfig types.AuthConfig
+	var authConfig registry.AuthConfig
 	var authStr string
 
 	if c.RegistryData != nil {
 		if c.RegistryData.UseAuth {
-			authConfig = types.AuthConfig{
+			authConfig = registry.AuthConfig{
 				Username: c.RegistryData.Username,
 				Password: c.RegistryData.Password,
 			}
@@ -32,7 +33,7 @@ func (c *ContainerController) EnsureImage() (err error) {
 	}
 
 	logrus.Infof("Pulling new image: %s", c.RegistryData.Image)
-	reader, err := c.cli.ImagePull(context.Background(), c.RegistryData.Image, types.ImagePullOptions{RegistryAuth: authStr})
+	reader, err := c.cli.ImagePull(context.Background(), c.RegistryData.Image, image.PullOptions{RegistryAuth: authStr})
 
 	if err != nil {
 		return err

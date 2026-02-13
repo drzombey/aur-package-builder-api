@@ -3,7 +3,6 @@ package docker
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 )
 
@@ -20,7 +19,7 @@ func (c *ContainerController) RemoveContainerById(containerId string) (err error
 		return err
 	}
 
-	err = c.cli.ContainerRemove(context.Background(), cnt.ID, types.ContainerRemoveOptions{})
+	err = c.cli.ContainerRemove(context.Background(), cnt.ID, container.RemoveOptions{})
 
 	if err != nil {
 		return err
@@ -43,7 +42,7 @@ func (c *ContainerController) CleanContainersByImage(image string) (err error) {
 			continue
 		}
 
-		err = c.cli.ContainerRemove(context.Background(), cnt.ID, types.ContainerRemoveOptions{})
+		err = c.cli.ContainerRemove(context.Background(), cnt.ID, container.RemoveOptions{})
 
 		if err != nil {
 			continue
