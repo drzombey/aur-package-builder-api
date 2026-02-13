@@ -5,14 +5,14 @@ import (
 	"io"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 )
 
 func (c *ContainerController) ContainerLog(id string) (result string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	reader, err := c.cli.ContainerLogs(ctx, id, types.ContainerLogsOptions{
+	reader, err := c.cli.ContainerLogs(ctx, id, container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 	})

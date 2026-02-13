@@ -22,7 +22,7 @@ func (c *ContainerController) ContainersByImage(image string) (containers []type
 	args := filters.NewArgs()
 	args.Add("ancestor", image)
 
-	containers, err = c.cli.ContainerList(context.Background(), types.ContainerListOptions{
+	containers, err = c.cli.ContainerList(context.Background(), container.ListOptions{
 		All:     true,
 		Filters: args,
 	})
@@ -34,11 +34,11 @@ func (c *ContainerController) ContainersByImage(image string) (containers []type
 	return containers, nil
 }
 
-func (c *ContainerController) ContainerById(containerId string) (container *types.Container, err error) {
+func (c *ContainerController) ContainerById(containerId string) (cont *types.Container, err error) {
 	args := filters.NewArgs()
 	args.Add("id", containerId)
 
-	containers, err := c.cli.ContainerList(context.Background(), types.ContainerListOptions{
+	containers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
 		Limit:   1,
 		Filters: args,
 	})
@@ -47,8 +47,8 @@ func (c *ContainerController) ContainerById(containerId string) (container *type
 		return nil, err
 	}
 
-	container = &containers[0]
-	return container, nil
+	cont = &containers[0]
+	return cont, nil
 }
 
 func (c *ContainerController) CopyFromContainer(containerId string, src string) (stream io.ReadCloser, err error) {

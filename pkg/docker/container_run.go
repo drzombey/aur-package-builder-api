@@ -3,7 +3,6 @@ package docker
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 )
@@ -39,7 +38,7 @@ func (c *ContainerController) RunContainer(image string, command []string, volum
 		return "", err
 	}
 
-	err = c.cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	err = c.cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{})
 	if err != nil {
 		return "", err
 	}

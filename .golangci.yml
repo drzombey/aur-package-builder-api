@@ -1,0 +1,87 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 2
+  
+  gocyclo:
+    min-complexity: 10
+  
+  gofmt:
+    simplify: true
+  
+  goimports:
+    local-prefixes: github.com/drzombey/aur-package-builder-api
+  
+  govet:
+    check-shadowing: true
+  
+  lll:
+    line-length: 120
+  
+  misspell:
+    locale: US
+
+linters:
+  disable-all: true
+  enable:
+    # Default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    
+    # Additional linters
+    - asciicheck
+    - bodyclose
+    - dupl
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosec
+    - lll
+    - misspell
+    - prealloc
+    - revive
+    - stylecheck
+    - unconvert
+    - unparam
+    - whitespace
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - lll
+        - goconst
+    
+    # Allow init functions in main
+    - path: cmd/api/main.go
+      linters:
+        - gochecknoinits
+        
+    # Allow globals in config  
+    - path: cmd/api/config/
+      linters:
+        - gochecknoglobals
+  
+  exclude-use-default: false
+  exclude-case-sensitive: false
