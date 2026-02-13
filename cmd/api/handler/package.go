@@ -1,108 +1,75 @@
 package handler
 
 import (
-	"github.com/drzombey/aur-package-builder-api/pkg/storage"
 	"net/http"
 
 	"github.com/drzombey/aur-package-builder-api/cmd/api/config"
 	repository "github.com/drzombey/aur-package-builder-api/cmd/api/db/repo"
+	"github.com/drzombey/aur-package-builder-api/cmd/api/middleware"
 	"github.com/drzombey/aur-package-builder-api/pkg/aur"
 	"github.com/drzombey/aur-package-builder-api/pkg/builder"
 	"github.com/drzombey/aur-package-builder-api/pkg/docker"
+	"github.com/drzombey/aur-package-builder-api/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	app             *config.AppConfig
+// Handler holds all dependencies for the HTTP handlers
+type Handler struct {
+	config          *config.AppConfig
 	storageProvider storage.Provider
-)
-
-func InitHandlers(a *config.AppConfig, sp storage.Provider) {
-	app = a
-	storageProvider = sp
+	packageRepo     repository.PackageRepository
 }
 
-func HandleGetAlreadyBuildPackages(c *gin.Context) {
-	repo, err := repository.NewPackageRepo(app.Database)
-
-	if err != nil {
-		logrus.Errorf("Failed to initialize database connection [error: %s]", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"msg":    "An error occured internally",
-		})
-		return
+// NewHandler creates a new handler instance with all dependencies
+func NewHandler(config *config.AppConfig, storageProvider storage.Provider, packageRepo repository.PackageRepository) *Handler {
+	return &Handler{
+		config:          config,
+		storageProvider: storageProvider,
+		packageRepo:     packageRepo,
 	}
+}
 
-	packages, err := repo.GetAlreadyBuildPackages()
+func (h *Handler) HandleGetAlreadyBuildPackages(c *gin.Context) {
+	packages, err := h.packageRepo.GetAlreadyBuildPackages()
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"msg":    "An error occured internally",
-		})
+		middleware.AbortWithError(c, middleware.NewInternalServerError("Failed to get packages", err))
 		return
 	}
 
 	c.IndentedJSON(http.StatusOK, &packages)
 }
 
-func HandleGetAurPackageByName(c *gin.Context) {
-	repo, err := repository.NewPackageRepo(app.Database)
-
-	if err != nil {
-		logrus.Errorf("Failed to initialize database connection [error: %s]", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"msg":    "An error occured internally",
-		})
-		return
-	}
-
+func (h *Handler) HandleGetAurPackageByName(c *gin.Context) {
 	packagename, isPackageNameSet := c.GetQuery("packageName")
 
 	if !isPackageNameSet {
-		logrus.Error("Error query parameter not set")
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusBadRequest,
-			"msg":    "Query parameter packageName not set!",
-		})
+		middleware.AbortWithError(c, middleware.NewBadRequestError("Query parameter packageName not set", nil))
 		return
 	}
 
-	response, err := repo.GetPackageFromAur(packagename)
+	response, err := h.packageRepo.GetPackageFromAur(packagename)
 
 	if err != nil {
-		logrus.Errorf("Error during getting of aur packages [error %s]", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"msg":    "An error occured internally",
-		})
+		middleware.AbortWithError(c, middleware.NewInternalServerError("Failed to get packages from AUR", err))
 		return
 	}
 
 	c.IndentedJSON(http.StatusOK, response)
 }
 
-func HandleBuildPackage(c *gin.Context) {
-	repo, err := repository.NewPackageRepo(app.Database)
-
-	if err != nil {
-		handleError(c, err)
-		return
-	}
-
+func (h *Handler) HandleBuildPackage(c *gin.Context) {
 	var newPackage aur.Package
 
 	if err := c.BindJSON(&newPackage); err != nil {
-		handleInvalidJsonStructure(c, err)
+		middleware.AbortWithError(c, middleware.NewBadRequestError("Invalid JSON structure", err))
 		return
 	}
 
-	result, err := repo.GetAlreadyBuildPackageByAurIdAndVersion(newPackage.ID, newPackage.Version)
+	result, err := h.packageRepo.GetAlreadyBuildPackageByAurIdAndVersion(newPackage.ID, newPackage.Version)
 	if err != nil {
-		handleError(c, err)
+		middleware.AbortWithError(c, middleware.NewInternalServerError("Failed to check existing package", err))
 		return
 	}
 
@@ -117,39 +84,35 @@ func HandleBuildPackage(c *gin.Context) {
 		}
 	}
 
-	err = repo.AddAurPackage(newPackage)
+	err = h.packageRepo.AddAurPackage(newPackage)
 	if err != nil {
-		logrus.Errorf("Error occured [error: %s]", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"msg":    "An error occured internally",
-		})
+		middleware.AbortWithError(c, middleware.NewInternalServerError("Failed to add package to database", err))
 		return
 	}
 
 	registryData := docker.RegistryData{
-		Image:    app.Docker.ContainerImage,
-		Username: app.Docker.Username,
-		Password: app.Docker.Password,
-		UseAuth:  app.Docker.Auth,
+		Image:    h.config.Docker.ContainerImage,
+		Username: h.config.Docker.Username,
+		Password: h.config.Docker.Password,
+		UseAuth:  h.config.Docker.Auth,
 	}
 
 	containerController, err := docker.NewContainerController(&registryData)
 	if err != nil {
-		handleError(c, err)
+		middleware.AbortWithError(c, middleware.NewInternalServerError("Failed to create container controller", err))
 		return
 	}
 
-	builderService, err := builder.NewAurBuilderService(containerController, storageProvider)
+	builderService, err := builder.NewAurBuilderService(containerController, h.storageProvider)
 	if err != nil {
-		handleError(c, err)
+		middleware.AbortWithError(c, middleware.NewInternalServerError("Failed to create builder service", err))
 		return
 	}
 
-	containerId, err := builderService.StartBuildAurPkgRoutine(&newPackage, app.PackagePath)
+	containerId, err := builderService.StartBuildAurPkgRoutine(&newPackage, h.config.PackagePath)
 
 	if err != nil {
-		handleError(c, err)
+		middleware.AbortWithError(c, middleware.NewInternalServerError("Failed to start build routine", err))
 		return
 	}
 
